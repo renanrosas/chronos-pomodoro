@@ -45,9 +45,24 @@ export function MainForm() {
       config: { ...prevState.config },
       activeTask: newTask,
       currentCycle: nextCycle,
-      secondsRemaining, // conferir
-      formattedSecondsRemaining: formatSecondsToMinutes(secondsRemaining), // conferir
+      secondsRemaining,
+      formattedSecondsRemaining: formatSecondsToMinutes(secondsRemaining),
       tasks: [...prevState.tasks, newTask],
+    }));
+  }
+
+  function handleInterruptTask() {
+    setState(prevState => ({
+      ...prevState,
+      activeTask: null,
+      secondsRemaining: 0,
+      formattedSecondsRemaining: '00:00',
+      tasks: prevState.tasks.map(task => {
+        if (prevState.activeTask && prevState.activeTask.id === task.id) {
+          return { ...task, interruptedDate: Date.now() };
+        }
+        return task;
+      }),
     }));
   }
 
@@ -58,8 +73,9 @@ export function MainForm() {
           labelText='Task'
           id='input'
           type='text'
-          placeholder='Digite algo'
+          placeholder='Digite uma tarefa'
           ref={taskNameInput}
+          disabled={!!state.activeTask}
         />
       </div>
 
@@ -74,8 +90,25 @@ export function MainForm() {
       )}
 
       <div className='formRow'>
-        <DefaultButton icon={<PlayCircleIcon />} color='green' />
-        <DefaultButton icon={<StopCircleIcon />} color='red' />
+        {!state.activeTask ? (
+          <DefaultButton
+            aria-label='Iniciar nova tarefa'
+            title='Iniciar nova tarefa'
+            type='submit'
+            icon={<PlayCircleIcon />}
+            key='start-button'
+          />
+        ) : (
+          <DefaultButton
+            aria-label='Interromper tarefa atual'
+            title='Interromper tarefa atual'
+            type='button'
+            color='red'
+            icon={<StopCircleIcon />}
+            onClick={handleInterruptTask}
+            key='stop-button'
+          />
+        )}
       </div>
     </form>
   );
